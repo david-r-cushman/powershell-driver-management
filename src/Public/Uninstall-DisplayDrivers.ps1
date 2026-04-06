@@ -1,9 +1,6 @@
 # Require script to be run with PowerShell version 5.0 or higher
 #Requires -Version 5.0
 
-#Require script to be run as an Administrator
-#Requires -RunAsAdministrator
-
 <#
 .SYNOPSIS
     Uninstall driver packages for the "display" device class utilizing "devcon.exe" on Windows 7 or
@@ -82,6 +79,7 @@
         2 = Dependency Missing (devcon.exe not found)
         3 = VM Detected (script blocked on virtual machines)
         4 = Devcon listclass failed
+        5 = Administrative Context Required
 
     Exit Code Handling:
         The script initializes $ExitCode to 0 (Success).
@@ -108,101 +106,173 @@ param (
     
 )
 
-# Set the initial exit code to 0 (Success)
-# If errors do occur later, $ExitCode will be updated to reflect the specific failure
-$ExitCode = 0
+$script:DisplayDriverVmManufacturers = @(
+    'Microsoft Corporation',
+    'VMware, Inc.',
+    'Xen',
+    'innotek GmbH',
+    'Red Hat',
+    'Oracle Corporation'
+)
 
-# Obtain SystemInfo from current computer
-$systemInfo = Get-CimInstance -ClassName Win32_ComputerSystem
+$script:DisplayDriverPciRegex = '^PCI\\VEN_[0-9A-F]{4}&DEV_[0-9A-F]{4}(?:&SUBSYS_[0-9A-F]{8})?(?:&REV_[0-9A-F]{2})?'
 
-# Obtain Manufacturer from $systemInfo
-$manufacturer = $systemInfo.Manufacturer
+function Get-DisplayDriverComputerSystem {
+    [CmdletBinding()]
+    param ()
 
-# Obtain Model from $systemInfo
-$model = $systemInfo.Model
-
-# List of common virtual machine manufacturers/models
-$vmManufacturers = @("Microsoft Corporation", "VMware, Inc.", "Xen", "innotek GmbH", "Red Hat", "Oracle Corporation")
-
-# The regex pattern for PCI devices, which corresponds with the "Display" driver class
-$pciRegex = '^PCI\\VEN_[0-9A-F]{4}&DEV_[0-9A-F]{4}(?:&SUBSYS_[0-9A-F]{8})?(?:&REV_[0-9A-F]{2})?'
-
-# Check if the manufacturer or model is in the list of virtual machine manufacturers/models and throw error if true
-if ($vmManufacturers -contains $manufacturer -or $vmManufacturers -contains $model) {
-    Write-Output "This script cannot be run on a virtual machine."
-    $ExitCode = 3
-    exit $ExitCode
-}
-else {
-    # Write output to the console indicating that the script is running on a physical machine
-    Write-Output "Running on a physical machine."
+    Get-CimInstance -ClassName Win32_ComputerSystem
 }
 
-# Define the full path to devcon.exe (expected in same directory as script)
-$devconPath = Join-Path -Path $PSScriptRoot -ChildPath "devcon.exe"
+function Test-DisplayDriverAdministrativeContext {
+    [CmdletBinding()]
+    param ()
 
-# Verify devcon.exe exists
-if (-not (Test-Path -Path $devconPath -PathType Leaf)) {
-    Write-Output "Error: devcon.exe not found in script directory ($PSScriptRoot)."
-    $ExitCode = 2   # Custom exit code for 'dependency missing'
-    exit $ExitCode
-}
-else {
-    Write-Output "Found devcon.exe at $devconPath"
+    $currentIdentity = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $currentPrincipal = [Security.Principal.WindowsPrincipal]::new($currentIdentity)
+
+    return $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
-# Attempt to query display devices class with devcon.exe
-try {
-    Write-Output "Querying display devices with devcon.exe..."
-    $output = & $devconPath listclass display 2>&1
+function Test-DisplayDriverVirtualMachine {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [psobject]$ComputerSystem
+    )
 
-    if (-not $output) {
-        throw "devcon.exe returned no output when listing display devices."
+    return (
+        $script:DisplayDriverVmManufacturers -contains $ComputerSystem.Manufacturer -or
+        $script:DisplayDriverVmManufacturers -contains $ComputerSystem.Model
+    )
+}
+
+function Get-DisplayDriverDevConPath {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [string]$ScriptRoot
+    )
+
+    $devconPath = Join-Path -Path $ScriptRoot -ChildPath 'devcon.exe'
+
+    if (-not (Test-Path -Path $devconPath -PathType Leaf)) {
+        throw [System.IO.FileNotFoundException]::new("Error: devcon.exe not found in script directory ($ScriptRoot).")
     }
 
-    Write-Output "Successfully retrieved display device list."
-}
-catch {
-    Write-Error "Failed to query display devices: $($_.Exception.Message)"
-    $ExitCode = 4   # Custom code for 'listclass failed'
-    exit $ExitCode
+    return $devconPath
 }
 
-try {
-    # Split devcon output into lines
-    $outputLines = $output -split "`n"
+function Invoke-DisplayDriverDevCon {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [string]$DevConPath,
 
-    foreach ($line in $outputLines) {
-        $trimmedLine = $line.Trim()
+        [Parameter(Mandatory)]
+        [string[]]$ArgumentList
+    )
 
-        # Regex match for valid PCI hardware IDs
-        if ($trimmedLine -match $pciRegex) {
-            $hardwareID = $Matches[0]
+    $output = & $DevConPath @ArgumentList 2>&1
 
-            # Use ShouldProcess for WhatIf/Confirm support
-            if ($PSCmdlet.ShouldProcess($hardwareID, "Remove display driver")) {
-                Write-Output "Removing driver package: $hardwareID"
+    [pscustomobject]@{
+        Output   = @($output)
+        ExitCode = $LASTEXITCODE
+    }
+}
 
-                # Call devcon.exe to remove the driver
-                $removeOutput = & $devconPath remove $hardwareID 2>&1
-                Write-Output $removeOutput
+function Get-DisplayHardwareIdFromLine {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [AllowEmptyString()]
+        [string]$Line
+    )
 
-                # Check exit code from devcon
-                if ($LASTEXITCODE -ne 0) {
-                    throw "devcon.exe failed to remove $hardwareID (exit code $LASTEXITCODE)."
+    $trimmedLine = $Line.Trim()
+
+    if ($trimmedLine -match $script:DisplayDriverPciRegex) {
+        return $Matches[0]
+    }
+
+    return $null
+}
+
+function Invoke-UninstallDisplayDrivers {
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param (
+        [string]$ScriptRoot = $PSScriptRoot
+    )
+
+    if (-not (Test-DisplayDriverAdministrativeContext)) {
+        Write-Output 'This script must be run in an elevated administrative context.'
+        return 5
+    }
+
+    $systemInfo = Get-DisplayDriverComputerSystem
+
+    if (Test-DisplayDriverVirtualMachine -ComputerSystem $systemInfo) {
+        Write-Output 'This script cannot be run on a virtual machine.'
+        return 3
+    }
+
+    Write-Output 'Running on a physical machine.'
+
+    try {
+        $devconPath = Get-DisplayDriverDevConPath -ScriptRoot $ScriptRoot
+        Write-Output "Found devcon.exe at $devconPath"
+    }
+    catch {
+        Write-Output $_.Exception.Message
+        return 2
+    }
+
+    try {
+        Write-Output 'Querying display devices with devcon.exe...'
+        $listResult = Invoke-DisplayDriverDevCon -DevConPath $devconPath -ArgumentList @('listclass', 'display')
+
+        if (-not $listResult.Output) {
+            throw 'devcon.exe returned no output when listing display devices.'
+        }
+
+        Write-Output 'Successfully retrieved display device list.'
+    }
+    catch {
+        Write-Error "Failed to query display devices: $($_.Exception.Message)"
+        return 4
+    }
+
+    try {
+        foreach ($line in $listResult.Output) {
+            $trimmedLine = "$line".Trim()
+            $hardwareID = Get-DisplayHardwareIdFromLine -Line $trimmedLine
+
+            if ($null -ne $hardwareID) {
+                if ($PSCmdlet.ShouldProcess($hardwareID, 'Remove display driver')) {
+                    Write-Output "Removing driver package: $hardwareID"
+
+                    $removeResult = Invoke-DisplayDriverDevCon -DevConPath $devconPath -ArgumentList @('remove', $hardwareID)
+                    Write-Output $removeResult.Output
+
+                    if ($removeResult.ExitCode -ne 0) {
+                        throw "devcon.exe failed to remove $hardwareID (exit code $($removeResult.ExitCode))."
+                    }
                 }
             }
+            else {
+                Write-Output "Info: Skipping line (no valid hardware ID pattern found): '$trimmedLine'"
+            }
         }
-        else {
-            Write-Output "Info: Skipping line (no valid hardware ID pattern found): '$trimmedLine'"
-        }
-    }
 
-    Write-Output "Script completed successfully."
-    exit $ExitCode
+        Write-Output 'Script completed successfully.'
+        return 0
+    }
+    catch {
+        Write-Error "Script failed with error: $($_.Exception.Message)"
+        return 1
+    }
 }
-catch {
-    Write-Error "Script failed with error: $($_.Exception.Message)"
-    $ExitCode = 1
-    exit $ExitCode
+
+if ($MyInvocation.InvocationName -ne '.') {
+    exit (Invoke-UninstallDisplayDrivers -ScriptRoot $PSScriptRoot @PSBoundParameters)
 }
