@@ -3,9 +3,10 @@ name: Pester
 on:
   push:
     branches:
-      - Dev
       - main
   pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -34,4 +35,3 @@ jobs:
           if ($result.FailedCount -gt 0) {
               throw "Pester reported $($result.FailedCount) failed test(s)."
           }
-
