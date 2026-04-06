@@ -93,6 +93,8 @@ Although the deployment target is a single ConfigMgr-importable script, the scri
 
 One intentional design choice was replacing a parse-time `#Requires -RunAsAdministrator` guard with a runtime administrative-context check. That keeps the operational requirement in place while also allowing non-elevated test sessions to validate the script's behavior safely.
 
+The automated Pester tests validate script logic by mocking `devcon.exe` interactions rather than invoking the real executable. That means CI can run without `devcon.exe` being present in the repository, while production use still requires the real `devcon.exe` file to be present beside the script at runtime.
+
 That balance is important here: the script remains faithful to its deployment origins, but it is no longer locked into a form that is difficult to validate safely.
 
 ## Usage Notes
