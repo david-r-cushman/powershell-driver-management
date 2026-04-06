@@ -1,0 +1,2 @@
+# Force all text files to use LF line endings on check-in/check-out
+* text=auto eol=lf

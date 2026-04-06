@@ -1,0 +1,14 @@
+{
+    "recommendations": [
+        "ms-vscode.PowerShell",
+        "DavidAnson.vscode-markdownlint",
+        "ms-vscode.editorconfig",
+        "ms-azuretools.vscode-docker",
+        "GitHub.vscode-pull-request-github",
+        "GitHub.copilot-chat",
+        "ms-vscode.azurecli",
+        "ionutvmi.path-autocomplete",
+        "eamodio.gitlens",
+        "ms-vscode-remote.remote-containers"
+    ]
+}

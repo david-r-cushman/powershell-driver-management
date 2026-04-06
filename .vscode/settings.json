@@ -1,0 +1,9 @@
+{
+    "powershell.codeFormatting.preset": "OTBS",
+    "editor.formatOnSave": true,
+    "editor.renderWhitespace": "all",
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.eol": "\n",
+    "powershell.scriptAnalysis.enable": true
+}

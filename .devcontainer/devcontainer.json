@@ -1,0 +1,33 @@
+{
+    "name": "PowerShell 7.4 Template",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:1": {
+            "configureZshAsDefaultShell": false
+        }
+    },
+    // GitHub-authenticated extensions are intentionally excluded from the container.
+    // They may still be available on the host workspace, but not inside this environment.
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.PowerShell",
+                "DavidAnson.vscode-markdownlint",
+                "ms-vscode.editorconfig",
+                "ms-azuretools.vscode-docker",
+                "ms-vscode.azurecli",
+                "ionutvmi.path-autocomplete",
+                "eamodio.gitlens",
+                "ms-vscode-remote.remote-containers"
+            ],
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "pwsh"
+            }
+        }
+    },
+    // The container currently runs as root for compatibility with existing tooling and scripts.
+    // If stricter least-privilege behavior becomes a priority, this should be revisited.
+    "remoteUser": "root"
+}
