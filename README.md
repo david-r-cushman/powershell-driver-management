@@ -1,6 +1,6 @@
 # Uninstall-DisplayDrivers
 
-[![Pester](https://github.com/david-r-cushman/powershell-driver-management/actions/workflows/pester.yml/badge.svg?branch=Dev)](https://github.com/david-r-cushman/powershell-driver-management/actions/workflows/pester.yml)
+[![Pester](https://github.com/david-r-cushman/powershell-driver-management/actions/workflows/pester.yml/badge.svg?branch=main)](https://github.com/david-r-cushman/powershell-driver-management/actions/workflows/pester.yml)
 
 This repository contains a PowerShell script for removing display driver packages by using `devcon.exe`.
 
@@ -76,7 +76,7 @@ The script exits with explicit codes so ConfigMgr can report outcomes more accur
 
 Pester test status is surfaced at the top of this README through the GitHub Actions badge.
 
-That badge reflects the current result of the repository's automated Pester workflow on the `Dev` branch, giving a quick signal about whether the script's tested behavior is currently passing in CI.
+That badge reflects the current result of the repository's automated Pester workflow on the `main` branch, giving a quick signal about whether the script's tested behavior is currently passing in CI.
 
 ## Repository Layout
 
