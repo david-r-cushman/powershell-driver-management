@@ -1,0 +1,41 @@
+permissions:
+  contents: read
+
+name: Pester
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Ensure Pester is available
+        shell: pwsh
+        run: |
+          Install-Module -Name Pester -Repository PSGallery -Force -Scope CurrentUser -SkipPublisherCheck
+          Import-Module Pester -Force
+          Get-Module Pester -ListAvailable | Sort-Object Version -Descending | Select-Object -First 1 Name, Version
+
+      - name: Run Pester tests
+        shell: pwsh
+        run: |
+          $config = New-PesterConfiguration
+          $config.Run.Path = 'Tests/Unit/Uninstall-DisplayDrivers.Tests.ps1'
+          $config.Output.Verbosity = 'Detailed'
+          $config.TestRegistry.Enabled = $false
+          $result = Invoke-Pester -Configuration $config -PassThru
+
+          if ($result.FailedCount -gt 0) {
+              throw "Pester reported $($result.FailedCount) failed test(s)."
+          }
