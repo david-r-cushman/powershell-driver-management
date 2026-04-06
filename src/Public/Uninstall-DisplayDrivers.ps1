@@ -3,97 +3,99 @@
 
 <#
 .SYNOPSIS
-    Uninstall driver packages for the "display" device class utilizing "devcon.exe" on Windows 7 or
-    newer devices.  This script is intended for use with Microsoft Endpoint Configuration Manager (MECM)
-    and will exit with a return code of 0 if successful, or 1 if an error occurs.  This script will
-    also exit if you attempt to run it on a virtual machine, and as such, is intended for physical
-    computers only.
-
-    Devcon.exe is superior to using pnputil.exe as pnputil.exe requires that you know the exact
-    name of the oem.inf (driver package) file that you wish to uninstall, which is unique to every
-    install.  With devcon.exe, you can easily uninstall the oem.inf file by only needing to know the
-    hardware id of the device you wish to uninstall the driver package for. In addition to this, devcon.exe
-    allows you to easily determine the hardware id of display adapters by specifying the class of device,
-    which in this case would be the "display" device class.
+    Uninstalls display driver packages by using devcon.exe and returns ConfigMgr-friendly exit codes.
 
 .DESCRIPTION
     Scope Assurance: In its current form, this script is only capable of removing display drivers.
 
-    This script, which must be run as an Administrator, provides easy and reliable removal of display
-    device driver packages by using the "devcon.exe" utility. The script will find all display devices
-    and their hardware ids, and then uninstall the driver package for each device.
+    This script is intended to be deployed as a script in Microsoft Configuration Manager
+    (ConfigMgr / MECM), not as a package or program. It remains a single self-contained `.ps1`
+    file so it can be imported and executed through the ConfigMgr Scripts feature while still
+    returning explicit exit codes that can be collected in execution status reporting.
 
-    Please note that the "devcon.exe" utility must be present in the same directory as this script.
-    Details on where to obtain "devcon.exe" and how it is used are provided in the .LINK section.
+    The script must run in an elevated administrative context on a physical computer.
+    It blocks execution on known virtual machine platforms and verifies that `devcon.exe`
+    is present in the same directory as the script before attempting any driver removal.
 
-    Display driver package removal is performed by the following steps:
-    1. List all display devices and their hardware ids using "devcon.exe listclass display".
+    Driver removal is performed in two phases:
+    1. Query display-class devices with `devcon.exe listclass display`.
+    2. Extract matching PCI hardware IDs from the returned lines and call
+       `devcon.exe remove <hardware-id>` for each matching display adapter.
 
-        Sample Output:
-        PCI\VEN_8086&DEV_3E98&SUBSYS_09611028&REV_02\3&11583659&0&10: Intel(R) UHD Graphics 630
-        PCI\VEN_10DE&DEV_1E84&SUBSYS_C7231028&REV_A1\4&45D1E59&0&0008: NVIDIA GeForce RTX 2070 SUPER
-
-    2.  Uninstall the driver package for each device using "devcon.exe remove <device hardware id>".
-    
-        Explanation:
-        Each line of Step 1. output is taken as an invidual line, and the hardware ids
-        are then passed to "devcon.exe remove <device hardware id>," which then locates
-        the driver package for that hardware id and uninstalls it.  From the sample output
-        shown in Step 1, the hardware ids that would be passed to "devcon.exe remove" are:
-        - PCI\VEN_8086&DEV_3E98&SUBSYS_09611028&REV_02
-        - PCI\VEN_10DE&DEV_1E84&SUBSYS_C7231028&REV_A1
+    `devcon.exe` is used because it can enumerate devices by class and remove the
+    corresponding driver package by hardware ID, avoiding the need to know the
+    environment-specific `oem*.inf` name in advance.
 
 .PARAMETER WhatIf
-    Used to test the script without actually removing driver packages.
+    Shows what driver removals would occur without actually removing any driver packages.
 
 .INPUTS
     Not applicable
 
 .OUTPUTS
-    None. This script writes status messages to the console but does not return objects.
-    
+    None. This script writes status messages to the output stream and exits with a numeric code.
+
 .EXAMPLE
-    Testing the script without actually removing driver packages.
+    Preview the display driver removals without making changes.
     PS C:\> .\Uninstall-DisplayDrivers.ps1 -WhatIf
-        
-    Running the script and removing driver packages.
+
+    Example result:
+    The script enumerates display adapters, reports the hardware IDs it would target,
+    and exits without removing any driver packages.
+
+.EXAMPLE
+    Run the script in an elevated context to remove display driver packages.
     PS C:\> .\Uninstall-DisplayDrivers.ps1
 
-.LINK
-    This script was created with the assistance of GitHub Copilot in VS Code.
-    https://code.visualstudio.com/docs/copilot/overview
+    Example result:
+    The script locates `devcon.exe`, enumerates display devices, removes matching driver
+    packages, and exits with `0` on success.
 
-    How do I obtain devcon.exe?     
+.EXAMPLE
+    Review the script from ConfigMgr execution status by using its exit code mapping.
+    PS C:\> .\Uninstall-DisplayDrivers.ps1
+
+    Example result:
+    ConfigMgr records the script outcome based on the process exit code returned by the script.
+
+.LINK
+    How do I obtain devcon.exe?
     https://learn.microsoft.com/en-us/windows-hardware/drivers/devtest/devcon
 
+.LINK
     How do I use devcon.exe to list display device hardware ids?
     https://learn.microsoft.com/en-us/windows-hardware/drivers/devtest/devcon-listclass
 
+.LINK
     How do I use devcon.exe to remove a driver package using the device hardware id?
     https://learn.microsoft.com/en-us/windows-hardware/drivers/devtest/devcon-remove
+
+.LINK
+    Create and run PowerShell scripts from the Configuration Manager console.
+    https://learn.microsoft.com/en-us/intune/configmgr/apps/deploy-use/create-deploy-scripts
 
 .NOTES
     Exit Codes:
         0 = Success
         1 = General Failure
-        2 = Dependency Missing (devcon.exe not found)
-        3 = VM Detected (script blocked on virtual machines)
-        4 = Devcon listclass failed
+        2 = Dependency Missing (`devcon.exe` not found)
+        3 = Virtual Machine Detected
+        4 = `devcon.exe listclass display` failed
         5 = Administrative Context Required
 
-    Exit Code Handling:
-        The script initializes $ExitCode to 0 (Success).
-        If any error or guardrail condition occurs during execution,
-        $ExitCode is updated to reflect the specific failure type.
-        At termination, the script exits with the current value of $ExitCode.
-    
-    Regex Patterns (for reference):
-        Active in this script:
-            PCI:    ^PCI\\VEN_[0-9A-F]{4}&DEV_[0-9A-F]{4}(?:&SUBSYS_[0-9A-F]{8})?(?:&REV_[0-9A-F]{2})?
+    Runtime Requirements:
+        - PowerShell 5.0 or higher
+        - Elevated administrative context
+        - Physical computer
+        - `devcon.exe` present in the same directory as the script
 
-        Documented for future reuse:
-            USB:    ^USB\\VID_[0-9A-F]{4}&PID_[0-9A-F]{4}(?:&REV_[0-9A-F]{4})?
-            ACPI:   ^ACPI\\[A-Z0-9]{4}(?:&\w{4})?
+    ConfigMgr Considerations:
+        - designed for ConfigMgr Scripts deployment as a single `.ps1` file
+        - uses process exit codes so client reporting reflects success or failure states
+        - supports `-WhatIf` through `ShouldProcess` for safer validation and testing
+
+    PCI Hardware ID Pattern:
+        ^PCI\\VEN_[0-9A-F]{4}&DEV_[0-9A-F]{4}(?:&SUBSYS_[0-9A-F]{8})?(?:&REV_[0-9A-F]{2})?
 
     Author: David R. Cushman
     Created: 11/27/2025
