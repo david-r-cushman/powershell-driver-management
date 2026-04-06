@@ -49,7 +49,7 @@ Describe 'Invoke-UninstallDisplayDrivers' {
     It 'returns exit code 5 when not running in an administrative context' {
         Mock Test-DisplayDriverAdministrativeContext { $false }
 
-        $result = @(Invoke-UninstallDisplayDrivers -ScriptRoot 'C:\Temp')[-1]
+        $result = Invoke-UninstallDisplayDrivers -ScriptRoot 'C:\Temp'
 
         $result | Should -Be 5
         Should -Invoke Get-DisplayDriverComputerSystem -Times 0
@@ -64,7 +64,7 @@ Describe 'Invoke-UninstallDisplayDrivers' {
         }
         Mock Get-DisplayDriverDevConPath { 'C:\Temp\devcon.exe' }
 
-        $result = @(Invoke-UninstallDisplayDrivers -ScriptRoot 'C:\Temp')[-1]
+        $result = Invoke-UninstallDisplayDrivers -ScriptRoot 'C:\Temp'
 
         $result | Should -Be 3
         Should -Invoke Get-DisplayDriverDevConPath -Times 0
@@ -75,7 +75,7 @@ Describe 'Invoke-UninstallDisplayDrivers' {
             throw [System.IO.FileNotFoundException]::new('Error: devcon.exe not found in script directory (C:\Temp).')
         }
 
-        $result = @(Invoke-UninstallDisplayDrivers -ScriptRoot 'C:\Temp')[-1]
+        $result = Invoke-UninstallDisplayDrivers -ScriptRoot 'C:\Temp'
 
         $result | Should -Be 2
     }
@@ -86,7 +86,7 @@ Describe 'Invoke-UninstallDisplayDrivers' {
             throw 'devcon.exe execution failed.'
         }
 
-        $result = @(Invoke-UninstallDisplayDrivers -ScriptRoot 'C:\Temp' -ErrorAction SilentlyContinue)[-1]
+        $result = Invoke-UninstallDisplayDrivers -ScriptRoot 'C:\Temp' -ErrorAction SilentlyContinue
 
         $result | Should -Be 4
     }
@@ -103,7 +103,7 @@ Describe 'Invoke-UninstallDisplayDrivers' {
             }
         }
 
-        $result = @(Invoke-UninstallDisplayDrivers -ScriptRoot 'C:\Temp' -WhatIf)[-1]
+        $result = Invoke-UninstallDisplayDrivers -ScriptRoot 'C:\Temp' -WhatIf
 
         $result | Should -Be 0
         Should -Invoke Invoke-DisplayDriverDevCon -ParameterFilter { $ArgumentList[0] -eq 'remove' } -Times 0
@@ -124,7 +124,7 @@ Describe 'Invoke-UninstallDisplayDrivers' {
             }
         }
 
-        $result = @(Invoke-UninstallDisplayDrivers -ScriptRoot 'C:\Temp' -Confirm:$false -ErrorAction SilentlyContinue)[-1]
+        $result = Invoke-UninstallDisplayDrivers -ScriptRoot 'C:\Temp' -Confirm:$false -ErrorAction SilentlyContinue
 
         $result | Should -Be 1
         Should -Invoke Invoke-DisplayDriverDevCon -ParameterFilter { $ArgumentList[0] -eq 'remove' } -Times 1
@@ -145,7 +145,7 @@ Describe 'Invoke-UninstallDisplayDrivers' {
             }
         }
 
-        $result = @(Invoke-UninstallDisplayDrivers -ScriptRoot 'C:\Temp' -Confirm:$false)[-1]
+        $result = Invoke-UninstallDisplayDrivers -ScriptRoot 'C:\Temp' -Confirm:$false
 
         $result | Should -Be 0
         Should -Invoke Invoke-DisplayDriverDevCon -ParameterFilter { $ArgumentList[0] -eq 'remove' } -Times 1
