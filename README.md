@@ -6,7 +6,11 @@ The script is designed to remain true to its original operational use case: depl
 
 ## Origin Story
 
-This script began as a real-world operational tool created to solve a specific problem in managed Windows environments: reliably removing display drivers without needing to know the environment-specific `oem*.inf` name ahead of time.
+This script began as a real-world operational tool created during a Windows 7 to Windows 10 in-place upgrade effort managed through Microsoft Configuration Manager.
+
+During testing, legacy display drivers repeatedly blocked the upgrade process. Removing the display device alone was not enough, because the underlying driver package could remain in the driver store and be reinstalled after reboot. The practical problem to solve was not just device removal. It was reliable removal of the associated display driver package so the upgrade could continue successfully.
+
+This script was created to solve that specific operational blocker without needing to know the environment-specific `oem*.inf` name ahead of time.
 
 That history matters.
 
@@ -26,7 +30,9 @@ The script is intentionally scoped to display drivers only.
 
 `pnputil.exe` can remove driver packages, but it generally requires you to already know the exact published driver package name, such as an `oem*.inf` file.
 
-`devcon.exe` is a better fit for this scenario because it can enumerate display devices by class and target removal by hardware ID. That makes the script more practical in environments where the installed driver package name is not known in advance.
+In this scenario, that was a major limitation. The installed display device could be identified, but the exact `oem*.inf` package name was not always known ahead of time, and simply removing the device did not guarantee that Windows would not reinstall the same driver on restart.
+
+`devcon.exe` was a better fit because it can enumerate display devices by class and target removal by hardware ID. That made it practical to identify the active display adapters, remove the corresponding driver packages, and reduce the risk of the legacy drivers returning after reboot.
 
 ## ConfigMgr Alignment
 
@@ -39,6 +45,8 @@ That design choice is deliberate:
 - the operational deployment shape stays close to the way the script was originally used
 
 This repository may include tests and supporting documentation, but the deployable artifact remains a script rather than a package/program-oriented multi-file solution.
+
+The repository preserves the script in a form that reflects its original operational shape while making it easier to review, test, and maintain over time.
 
 ## Safety And Guardrails
 
@@ -76,6 +84,8 @@ The script exits with explicit codes so ConfigMgr can report outcomes more accur
 Although the deployment target is a single ConfigMgr-importable script, the script has been structured internally with helper functions so it can still be tested with Pester.
 
 One intentional design choice was replacing a parse-time `#Requires -RunAsAdministrator` guard with a runtime administrative-context check. That keeps the operational requirement in place while also allowing non-elevated test sessions to validate the script's behavior safely.
+
+That balance is important here: the script remains faithful to its deployment origins, but it is no longer locked into a form that is difficult to validate safely.
 
 ## Usage Notes
 
