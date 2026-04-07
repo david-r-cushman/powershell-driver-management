@@ -207,37 +207,37 @@ function Invoke-UninstallDisplayDrivers {
     )
 
     if (-not (Test-DisplayDriverAdministrativeContext)) {
-        Write-Information 'This script must be run in an elevated administrative context.' -InformationAction Continue
+        Write-Information 'This script must be run in an elevated administrative context.'
         return 5
     }
 
     $systemInfo = Get-DisplayDriverComputerSystem
 
     if (Test-DisplayDriverVirtualMachine -ComputerSystem $systemInfo) {
-        Write-Information 'This script cannot be run on a virtual machine.' -InformationAction Continue
+        Write-Information 'This script cannot be run on a virtual machine.'
         return 3
     }
 
-    Write-Information 'Running on a physical machine.' -InformationAction Continue
+    Write-Information 'Running on a physical machine.'
 
     try {
         $devconPath = Get-DisplayDriverDevConPath -ScriptRoot $ScriptRoot
-        Write-Information "Found devcon.exe at $devconPath" -InformationAction Continue
+        Write-Information "Found devcon.exe at $devconPath"
     }
     catch {
-        Write-Information $_.Exception.Message -InformationAction Continue
+        Write-Information $_.Exception.Message
         return 2
     }
 
     try {
-        Write-Information 'Querying display devices with devcon.exe...' -InformationAction Continue
+        Write-Information 'Querying display devices with devcon.exe...'
         $listResult = Invoke-DisplayDriverDevCon -DevConPath $devconPath -ArgumentList @('listclass', 'display')
 
         if (-not $listResult.Output) {
             throw 'devcon.exe returned no output when listing display devices.'
         }
 
-        Write-Information 'Successfully retrieved display device list.' -InformationAction Continue
+        Write-Information 'Successfully retrieved display device list.'
     }
     catch {
         Write-Error "Failed to query display devices: $($_.Exception.Message)"
@@ -251,11 +251,11 @@ function Invoke-UninstallDisplayDrivers {
 
             if ($null -ne $hardwareID) {
                 if ($PSCmdlet.ShouldProcess($hardwareID, 'Remove display driver')) {
-                    Write-Information "Removing driver package: $hardwareID" -InformationAction Continue
+                    Write-Information "Removing driver package: $hardwareID"
 
                     $removeResult = Invoke-DisplayDriverDevCon -DevConPath $devconPath -ArgumentList @('remove', $hardwareID)
                     foreach ($message in $removeResult.Output) {
-                        Write-Information "$message" -InformationAction Continue
+                        Write-Information "$message"
                     }
 
                     if ($removeResult.ExitCode -ne 0) {
@@ -264,11 +264,11 @@ function Invoke-UninstallDisplayDrivers {
                 }
             }
             else {
-                Write-Information "Info: Skipping line (no valid hardware ID pattern found): '$trimmedLine'" -InformationAction Continue
+                Write-Information "Info: Skipping line (no valid hardware ID pattern found): '$trimmedLine'"
             }
         }
 
-        Write-Information 'Script completed successfully.' -InformationAction Continue
+        Write-Information 'Script completed successfully.'
         return 0
     }
     catch {
@@ -278,5 +278,5 @@ function Invoke-UninstallDisplayDrivers {
 }
 
 if ($MyInvocation.InvocationName -ne '.') {
-    exit (Invoke-UninstallDisplayDrivers -ScriptRoot $PSScriptRoot @PSBoundParameters)
+    exit (Invoke-UninstallDisplayDrivers -ScriptRoot $PSScriptRoot @PSBoundParameters -InformationAction Continue)
 }
