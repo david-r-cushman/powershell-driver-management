@@ -23,9 +23,10 @@ jobs:
       - name: Ensure Pester is available
         shell: pwsh
         run: |
-          Install-Module -Name Pester -Repository PSGallery -Force -Scope CurrentUser -SkipPublisherCheck
-          Import-Module Pester -Force
-          Get-Module Pester -ListAvailable | Sort-Object Version -Descending | Select-Object -First 1 Name, Version
+          $pesterVersion = '5.7.1'
+          Install-Module -Name Pester -Repository PSGallery -RequiredVersion $pesterVersion -Force -Scope CurrentUser -ErrorAction Stop
+          Import-Module Pester -RequiredVersion $pesterVersion -Force -ErrorAction Stop
+          Get-Module Pester -ListAvailable | Where-Object Version -eq $pesterVersion | Select-Object -First 1 Name, Version
 
       - name: Run Pester tests
         shell: pwsh
