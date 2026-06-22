@@ -1,6 +1,7 @@
 # Uninstall-DisplayDrivers
 
 [![Pester](https://github.com/david-r-cushman/powershell-driver-management/actions/workflows/pester.yml/badge.svg?branch=main)](https://github.com/david-r-cushman/powershell-driver-management/actions/workflows/pester.yml)
+![Template Version](https://img.shields.io/badge/template-0.11.0-blue)
 
 This repository contains a PowerShell script for removing display driver packages by using `devcon.exe`.
 

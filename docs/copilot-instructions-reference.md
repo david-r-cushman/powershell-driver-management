@@ -1,56 +1,66 @@
 # GitHub Copilot Instructions Reference
 
-This file is a quick reference for maintaining GitHub Copilot instructions in this repository.
+This document explains how to maintain the repository-wide Copilot instructions without duplicating the canonical instruction file.
 
-## Repository-Wide Instructions
+## Canonical Instruction File
 
-`/.github/copilot-instructions.md` is the repository-wide instruction file.
+The active repository-wide instructions live at:
 
-Use it for guidance that should apply broadly across the repository, such as:
+- `/.github/copilot-instructions.md`
 
-- PowerShell coding expectations
-- testing expectations
-- review expectations
-- security and safety defaults
+That file is the source of truth for Copilot generation and review behavior in repositories created from this template.
+
+Do not copy the full instruction text into this reference document. Keeping one canonical file reduces drift and makes the applied rules easier to audit.
+
+## Governance Relationship
+
+The Copilot instructions translate the broader AI governance model into concrete repository behavior.
+
+Related governance documents:
+
+- `/docs/ai-behavioral-contract.md`
+- `/docs/ai-interaction-loop.md`
+- `/docs/powershell-ai-operating-model.md`
+
+Use those documents for rationale and operating model guidance. Use `/.github/copilot-instructions.md` for enforceable generation constraints.
+
+## When To Update Copilot Instructions
+
+Update `/.github/copilot-instructions.md` when the template changes in a way that should affect generated code, tests, reviews, or documentation.
+
+Common reasons include:
+
+- changing the preferred source, test, or template folder structure
+- adding or removing reusable templates
+- changing PowerShell version support
+- changing validation, testing, or security expectations
+- adding a new recurring pattern that downstream repositories should inherit
+
+Do not update it for one-off project preferences that belong only in a downstream repository.
+
+## Maintenance Checklist
+
+Before changing the Copilot instructions:
+
+1. Confirm the rule should apply broadly to repositories created from this template.
+2. Check that the rule does not conflict with `README.md`, `templates/`, or validation configuration.
+3. Keep the language direct and enforceable.
+4. Prefer one clear rule over several overlapping rules.
+5. Run repo checks after changes:
+
+   ```powershell
+   pwsh -NoProfile -File ./scripts/Invoke-RepoChecks.ps1 -IncludeTemplates
+   ```
 
 ## Additional Instruction Files
 
-The `/.github/Instructions/` folder can be used for narrower instruction files when you want Copilot guidance that is more specific than the repository-wide defaults.
+Use `/.github/Instructions/` only for narrower guidance that should not live in the repository-wide instruction file.
 
-These files are useful for topic-specific or context-specific guidance, such as:
+Good candidates:
 
 - Pester-specific conventions
 - module-structure guidance
 - documentation conventions
 - workflow-specific expectations
 
-## When To Add Another Instruction File
-
-Add another file in this folder when:
-
-- the guidance is too narrow to belong in `copilot-instructions.md`
-- the guidance applies only to a certain kind of work
-- keeping it separate will make the main instruction file easier to maintain
-
-Do not create extra files just to restate the same rules in different places.
-
-## Suggested Naming
-
-Use descriptive names that make the file's purpose obvious.
-
-Examples:
-
-- `pester.instructions.md`
-- `module-structure.instructions.md`
-- `documentation.instructions.md`
-- `governance.instructions.md`
-
-## Maintenance Notes
-
-- Keep repository-wide rules in `copilot-instructions.md`.
-- Use files in `/.github/Instructions/` only when the narrower scope is helpful.
-- If a helper file stops being useful, remove it instead of letting it drift.
-
-## Reference
-
-For the current GitHub behavior and supported instruction patterns, review the official GitHub Docs page on adding repository custom instructions for GitHub Copilot.
+Avoid extra instruction files that restate the same rules in different places.
