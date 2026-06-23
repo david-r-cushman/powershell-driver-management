@@ -79,6 +79,15 @@ Pester test status is surfaced at the top of this README through the GitHub Acti
 
 That badge reflects the current result of the repository's automated Pester workflow on the `main` branch, giving a quick signal about whether the script's tested behavior is currently passing in CI.
 
+## Project Versioning
+
+This repository versions the PowerShell driver management project itself using Semantic Versioning.
+
+- Current project version: see [`VERSION`](VERSION)
+- Version history: see [`CHANGELOG.md`](CHANGELOG.md)
+
+The project version is separate from the template-version badge at the top of this README. The badge records the `pwsh-dev-template` guidance version used for synced AI guidance and guardrails.
+
 ## Repository Layout
 
 - `src/Public/Uninstall-DisplayDrivers.ps1`
