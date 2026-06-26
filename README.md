@@ -88,6 +88,7 @@ This repository versions the PowerShell driver management project itself using S
 
 The project version is separate from the template-version badge at the top of this README. The badge records the `pwsh-dev-template` guidance version used for synced AI guidance and guardrails.
 
+For a design-focused map of how the script is structured internally, see [`docs/script-architecture-overview.md`](docs/script-architecture-overview.md).
 ## Repository Layout
 
 - `src/Public/Uninstall-DisplayDrivers.ps1`
