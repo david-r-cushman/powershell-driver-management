@@ -9,6 +9,7 @@ This project uses Semantic Versioning for the project itself. The project versio
 ### Added
 
 ### Changed
+- Hardened the GitHub Actions Pester bootstrap step to recover when `PSGallery` is missing from the runner before installing pinned Pester.
 
 ## 0.1.0 - 2026-06-22
 
