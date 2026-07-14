@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  repo-checks:
+    name: Repo checks (pwsh)
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install PowerShell modules
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          $psGallery = Get-PSRepository -Name 'PSGallery' -ErrorAction SilentlyContinue
+          if (-not $psGallery) {
+              Register-PSRepository -Default
+              $psGallery = Get-PSRepository -Name 'PSGallery' -ErrorAction SilentlyContinue
+              if (-not $psGallery) {
+                  throw "PSGallery repository is unavailable after Register-PSRepository -Default."
+              }
+          }
+
+          Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
+          Install-Module Pester -Scope CurrentUser -Force -RequiredVersion 6.0.0
+          Install-Module PSScriptAnalyzer -Scope CurrentUser -Force -RequiredVersion 1.25.0
+
+      - name: Run repo checks
+        shell: pwsh
+        run: |
+          ./scripts/Invoke-RepoChecks.ps1 -Verbose -IncludeTemplates -OutputPath ./artifacts
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results
+          path: artifacts/TestResults.xml
+          if-no-files-found: ignore

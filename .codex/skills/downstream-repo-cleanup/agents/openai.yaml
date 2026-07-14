@@ -1,0 +1,3 @@
+display_name: "Downstream Repo Cleanup"
+short_description: "Normalize a new downstream repo"
+default_prompt: "Use $downstream-repo-cleanup to normalize this new downstream repository."

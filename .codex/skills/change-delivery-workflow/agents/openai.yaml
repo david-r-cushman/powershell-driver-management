@@ -1,0 +1,4 @@
+interface:
+  display_name: "Change Delivery Workflow"
+  short_description: "Deliver ordinary repo changes with branch, changelog, PR, and release discipline"
+  default_prompt: "Use $change-delivery-workflow to perform routine repository changes through the standard branch, changelog, validation, commit, PR, and post-merge cleanup workflow."

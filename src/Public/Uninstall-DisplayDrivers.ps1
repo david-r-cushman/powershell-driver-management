@@ -103,7 +103,7 @@
     Purpose: Created as part of professional development and automation portfolio
 #>
 
-[CmdletBinding(SupportsShouldProcess=$true)]
+[CmdletBinding(SupportsShouldProcess = $true)]
 param (
     
 )
@@ -178,7 +178,7 @@ function Invoke-DisplayDriverDevCon {
     $output = & $DevConPath @ArgumentList 2>&1
 
     [pscustomobject]@{
-        Output   = @($output)
+        Output = @($output)
         ExitCode = $LASTEXITCODE
     }
 }
@@ -200,7 +200,7 @@ function Get-DisplayHardwareIdFromLine {
     return $null
 }
 
-function Invoke-UninstallDisplayDrivers {
+function Invoke-UninstallDisplayDriver {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param (
         [string]$ScriptRoot = $PSScriptRoot
@@ -278,5 +278,5 @@ function Invoke-UninstallDisplayDrivers {
 }
 
 if ($MyInvocation.InvocationName -ne '.') {
-    exit (Invoke-UninstallDisplayDrivers -ScriptRoot $PSScriptRoot @PSBoundParameters -InformationAction Continue)
+    exit (Invoke-UninstallDisplayDriver -ScriptRoot $PSScriptRoot @PSBoundParameters -InformationAction Continue)
 }

@@ -7,7 +7,7 @@ Describe 'Test-DisplayDriverVirtualMachine' {
     It 'returns true when the manufacturer matches a known VM platform' {
         $computerSystem = [pscustomobject]@{
             Manufacturer = 'VMware, Inc.'
-            Model        = 'Precision 3680'
+            Model = 'Precision 3680'
         }
 
         Test-DisplayDriverVirtualMachine -ComputerSystem $computerSystem | Should -BeTrue
@@ -16,7 +16,7 @@ Describe 'Test-DisplayDriverVirtualMachine' {
     It 'returns false for a physical workstation' {
         $computerSystem = [pscustomobject]@{
             Manufacturer = 'Dell Inc.'
-            Model        = 'Precision 3680'
+            Model = 'Precision 3680'
         }
 
         Test-DisplayDriverVirtualMachine -ComputerSystem $computerSystem | Should -BeFalse
@@ -35,13 +35,13 @@ Describe 'Get-DisplayHardwareIdFromLine' {
     }
 }
 
-Describe 'Invoke-UninstallDisplayDrivers' {
+Describe 'Invoke-UninstallDisplayDriver' {
     BeforeEach {
         Mock Test-DisplayDriverAdministrativeContext { $true }
         Mock Get-DisplayDriverComputerSystem {
             [pscustomobject]@{
                 Manufacturer = 'Dell Inc.'
-                Model        = 'Precision 3680'
+                Model = 'Precision 3680'
             }
         }
     }
@@ -49,7 +49,7 @@ Describe 'Invoke-UninstallDisplayDrivers' {
     It 'returns exit code 5 when not running in an administrative context' {
         Mock Test-DisplayDriverAdministrativeContext { $false }
 
-        $result = Invoke-UninstallDisplayDrivers -ScriptRoot 'C:\Temp'
+        $result = Invoke-UninstallDisplayDriver -ScriptRoot 'C:\Temp'
 
         $result | Should -Be 5
         Should -Invoke Get-DisplayDriverComputerSystem -Times 0
@@ -59,12 +59,12 @@ Describe 'Invoke-UninstallDisplayDrivers' {
         Mock Get-DisplayDriverComputerSystem {
             [pscustomobject]@{
                 Manufacturer = 'VMware, Inc.'
-                Model        = 'VMware Virtual Platform'
+                Model = 'VMware Virtual Platform'
             }
         }
         Mock Get-DisplayDriverDevConPath { 'C:\Temp\devcon.exe' }
 
-        $result = Invoke-UninstallDisplayDrivers -ScriptRoot 'C:\Temp'
+        $result = Invoke-UninstallDisplayDriver -ScriptRoot 'C:\Temp'
 
         $result | Should -Be 3
         Should -Invoke Get-DisplayDriverDevConPath -Times 0
@@ -75,7 +75,7 @@ Describe 'Invoke-UninstallDisplayDrivers' {
             throw [System.IO.FileNotFoundException]::new('Error: devcon.exe not found in script directory (C:\Temp).')
         }
 
-        $result = Invoke-UninstallDisplayDrivers -ScriptRoot 'C:\Temp'
+        $result = Invoke-UninstallDisplayDriver -ScriptRoot 'C:\Temp'
 
         $result | Should -Be 2
     }
@@ -86,7 +86,7 @@ Describe 'Invoke-UninstallDisplayDrivers' {
             throw 'devcon.exe execution failed.'
         }
 
-        $result = Invoke-UninstallDisplayDrivers -ScriptRoot 'C:\Temp' -ErrorAction SilentlyContinue
+        $result = Invoke-UninstallDisplayDriver -ScriptRoot 'C:\Temp' -ErrorAction SilentlyContinue
 
         $result | Should -Be 4
     }
@@ -95,7 +95,7 @@ Describe 'Invoke-UninstallDisplayDrivers' {
         Mock Get-DisplayDriverDevConPath { 'C:\Temp\devcon.exe' }
         Mock Invoke-DisplayDriverDevCon -ParameterFilter { $ArgumentList[0] -eq 'listclass' } {
             [pscustomobject]@{
-                Output   = @(
+                Output = @(
                     'PCI\VEN_8086&DEV_3E98&SUBSYS_09611028&REV_02\3&11583659&0&10: Intel(R) UHD Graphics 630',
                     '1 matching device(s) found.'
                 )
@@ -103,7 +103,7 @@ Describe 'Invoke-UninstallDisplayDrivers' {
             }
         }
 
-        $result = Invoke-UninstallDisplayDrivers -ScriptRoot 'C:\Temp' -WhatIf
+        $result = Invoke-UninstallDisplayDriver -ScriptRoot 'C:\Temp' -WhatIf
 
         $result | Should -Be 0
         Should -Invoke Invoke-DisplayDriverDevCon -ParameterFilter { $ArgumentList[0] -eq 'remove' } -Times 0
@@ -113,18 +113,18 @@ Describe 'Invoke-UninstallDisplayDrivers' {
         Mock Get-DisplayDriverDevConPath { 'C:\Temp\devcon.exe' }
         Mock Invoke-DisplayDriverDevCon -ParameterFilter { $ArgumentList[0] -eq 'listclass' } {
             [pscustomobject]@{
-                Output   = @('PCI\VEN_8086&DEV_3E98&SUBSYS_09611028&REV_02\3&11583659&0&10: Intel(R) UHD Graphics 630')
+                Output = @('PCI\VEN_8086&DEV_3E98&SUBSYS_09611028&REV_02\3&11583659&0&10: Intel(R) UHD Graphics 630')
                 ExitCode = 0
             }
         }
         Mock Invoke-DisplayDriverDevCon -ParameterFilter { $ArgumentList[0] -eq 'remove' } {
             [pscustomobject]@{
-                Output   = @('Remove failed.')
+                Output = @('Remove failed.')
                 ExitCode = 1
             }
         }
 
-        $result = Invoke-UninstallDisplayDrivers -ScriptRoot 'C:\Temp' -Confirm:$false -ErrorAction SilentlyContinue
+        $result = Invoke-UninstallDisplayDriver -ScriptRoot 'C:\Temp' -Confirm:$false -ErrorAction SilentlyContinue
 
         $result | Should -Be 1
         Should -Invoke Invoke-DisplayDriverDevCon -ParameterFilter { $ArgumentList[0] -eq 'remove' } -Times 1
@@ -134,18 +134,18 @@ Describe 'Invoke-UninstallDisplayDrivers' {
         Mock Get-DisplayDriverDevConPath { 'C:\Temp\devcon.exe' }
         Mock Invoke-DisplayDriverDevCon -ParameterFilter { $ArgumentList[0] -eq 'listclass' } {
             [pscustomobject]@{
-                Output   = @('PCI\VEN_8086&DEV_3E98&SUBSYS_09611028&REV_02\3&11583659&0&10: Intel(R) UHD Graphics 630')
+                Output = @('PCI\VEN_8086&DEV_3E98&SUBSYS_09611028&REV_02\3&11583659&0&10: Intel(R) UHD Graphics 630')
                 ExitCode = 0
             }
         }
         Mock Invoke-DisplayDriverDevCon -ParameterFilter { $ArgumentList[0] -eq 'remove' } {
             [pscustomobject]@{
-                Output   = @('1 device(s) removed.')
+                Output = @('1 device(s) removed.')
                 ExitCode = 0
             }
         }
 
-        $result = Invoke-UninstallDisplayDrivers -ScriptRoot 'C:\Temp' -Confirm:$false
+        $result = Invoke-UninstallDisplayDriver -ScriptRoot 'C:\Temp' -Confirm:$false
 
         $result | Should -Be 0
         Should -Invoke Invoke-DisplayDriverDevCon -ParameterFilter { $ArgumentList[0] -eq 'remove' } -Times 1

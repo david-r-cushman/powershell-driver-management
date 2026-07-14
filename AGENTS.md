@@ -29,7 +29,13 @@ If guidance in this file conflicts with `.github/copilot-instructions.md`, `.git
 
 Repo-local Codex skills are stored under `.codex/skills/`.
 
-For downstream AI guidance synchronization, agents should use `.codex/skills/downstream-guidance-sync/SKILL.md` together with `scripts/Invoke-TemplateGuidanceSync.ps1` instead of manually copying guidance files.
+For general repository change delivery, agents should use `.codex/skills/change-delivery-workflow/SKILL.md` to handle sandbox escalation, non-`main` branches, changelog updates, release decisions, commits, pull requests, and post-merge cleanup consistently.
+
+For immediate post-create normalization of repositories created from this template, agents should use `.codex/skills/downstream-repo-cleanup/SKILL.md` together with `scripts/Initialize-DownstreamRepo.ps1` before adding project-specific implementation, docs, tests, ADRs, or CI changes.
+
+For downstream AI guidance synchronization and delivery of newly added cleanup workflow assets into older downstream repositories, agents should use `.codex/skills/downstream-guidance-sync/SKILL.md` together with `scripts/Invoke-TemplateGuidanceSync.ps1` instead of manually copying guidance files. Cleanup itself still runs from the downstream repository through `scripts/Initialize-DownstreamRepo.ps1`.
+
+For downstream README audits or structural realignment against the shared portfolio skeleton, agents should use `.codex/skills/readme-alignment/SKILL.md` together with `scripts/Invoke-ReadmeAlignment.ps1`.
 
 For template runtime and tooling policy updates, agents should use `.codex/skills/runtime-policy-update/SKILL.md` together with `eng/runtime-policy.json`, `scripts/Update-GeneratedMarkdown.ps1`, and `scripts/Test-VersionPolicy.ps1`.
 
