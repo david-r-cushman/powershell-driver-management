@@ -93,9 +93,28 @@ function Resolve-RepoPath {
     return (Join-Path -Path $repoRoot -ChildPath $RelativePath)
 }
 
+function Resolve-OptionalRepoPath {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string[]]$RelativePath
+    )
+
+    foreach ($candidate in $RelativePath) {
+        $resolvedPath = Resolve-RepoPath -RelativePath $candidate
+        if (Test-Path -LiteralPath $resolvedPath) {
+            return $resolvedPath
+        }
+    }
+
+    return Resolve-RepoPath -RelativePath $RelativePath[0]
+}
+
 $analyzerSettingsPath = Resolve-RepoPath -RelativePath 'PSScriptAnalyzerSettings.psd1'
 $pesterConfigPath = Resolve-RepoPath -RelativePath 'PesterConfiguration.psd1'
-$pesterRunPath = Resolve-RepoPath -RelativePath 'tests'
+$pesterRunPath = Resolve-OptionalRepoPath -RelativePath @('tests', 'Tests')
+$analyzerTestPath = Resolve-OptionalRepoPath -RelativePath @('tests', 'Tests')
 $versionPolicyScriptPath = Resolve-RepoPath -RelativePath 'scripts/Test-VersionPolicy.ps1'
 $markdownValidationScriptPath = Resolve-RepoPath -RelativePath 'scripts/Invoke-MarkdownValidation.ps1'
 $generatedMarkdownScriptPath = Resolve-RepoPath -RelativePath 'scripts/Update-GeneratedMarkdown.ps1'
@@ -146,7 +165,7 @@ if (-not $SkipAnalyzer) {
 
     $analyzerResults = @()
     $analyzerResults += @(Invoke-ScriptAnalyzer -Path (Resolve-RepoPath -RelativePath 'src') -Recurse -Settings $analyzerSettingsPath)
-    $analyzerResults += @(Invoke-ScriptAnalyzer -Path (Resolve-RepoPath -RelativePath 'tests') -Recurse -Settings $analyzerSettingsPath)
+    $analyzerResults += @(Invoke-ScriptAnalyzer -Path $analyzerTestPath -Recurse -Settings $analyzerSettingsPath)
     $analyzerResults += @(Invoke-ScriptAnalyzer -Path (Resolve-RepoPath -RelativePath 'scripts') -Recurse -Settings $analyzerSettingsPath)
 
     if ($IncludeTemplates) {

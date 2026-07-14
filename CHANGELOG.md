@@ -14,6 +14,7 @@ This project uses Semantic Versioning for the project itself. The project versio
 - Aligned the downstream Dev Container, CI workflow, and generated environment-setup guidance to the synced runtime policy baseline.
 - Cleaned up preexisting analyzer findings in the script and unit tests so the newly delivered repo checks pass cleanly.
 - Hardened the GitHub Actions Pester bootstrap step to recover when `PSGallery` is missing from the runner before installing pinned Pester.
+- Updated repo checks to resolve either `tests` or `Tests` so analyzer and Pester paths work in this repository and in CI.
 ## 0.1.0 - 2026-06-22
 
 ### Added
