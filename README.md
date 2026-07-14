@@ -1,6 +1,6 @@
 # Uninstall-DisplayDrivers
 
-[![CI](https://github.com/david-r-cushman/powershell-driver-management/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/david-r-cushman/powershell-driver-management/actions/workflows/ci.yml)
+[![CI](https://github.com/david-r-cushman/powershell-driver-management/actions/workflows/pester.yml/badge.svg?branch=main)](https://github.com/david-r-cushman/powershell-driver-management/actions/workflows/pester.yml)
 
 <!-- BEGIN generated:readme-powershell-badge -->
 ![PowerShell 7.4](https://img.shields.io/badge/PowerShell-7.4-blue)
