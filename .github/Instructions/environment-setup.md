@@ -1,4 +1,4 @@
-# Environment Setup: PowerShell 7.4 Template
+# Environment Setup: PowerShell Development Template
 
 ## Overview
 
@@ -14,10 +14,14 @@ The goal of the environment is to improve consistency, reduce unnecessary host-t
 
 ## Technical Stack
 
+<!-- BEGIN generated:environment-runtime-stack -->
 - **Runtime:** PowerShell 7.4.x (LTS) on Ubuntu 22.04
+<!-- END generated:environment-runtime-stack -->
 - **Local Container Runtime:** Docker Desktop via WSL 2 backend
 - **Editor Support:** VS Code settings, launch configuration, and extension recommendations
-- **Tooling:** Azure CLI, Pester, PSScriptAnalyzer, and PSReadLine
+<!-- BEGIN generated:environment-tooling-stack -->
+- **Tooling:** Azure CLI, Pester 6.0.0, PSScriptAnalyzer 1.25.0, and PSReadLine 2.4.5
+<!-- END generated:environment-tooling-stack -->
 - **Governance:** `.editorconfig`, Markdown linting, and repository Copilot instructions
 
 ## Prerequisites For Local Container Use
@@ -65,7 +69,9 @@ That profile:
 
 ## Design Principles
 
+<!-- BEGIN generated:environment-runtime-principle -->
 - **Controlled Base Runtime:** The container starts from a pinned PowerShell 7.4 on Ubuntu 22.04 base image
+<!-- END generated:environment-runtime-principle -->
 - **Consistent Tooling Baseline:** Core tools are installed automatically so new repositories begin from a predictable starting point, even though not every tool is version-pinned
 - **Cross-Platform Formatting:** LF line endings and editor settings are used to reduce host and container formatting drift
 - **Credential Boundary Awareness:** Development containers are intended to avoid pulling host-resident GitHub Copilot authentication state into the container environment

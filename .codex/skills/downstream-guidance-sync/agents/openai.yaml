@@ -1,0 +1,4 @@
+interface:
+  display_name: "Downstream Guidance Sync"
+  short_description: "Sync template guidance and cleanup assets into downstream repos"
+  default_prompt: "Use $downstream-guidance-sync to sync a downstream repository with the current pwsh-dev-template guidance and cleanup workflow assets."

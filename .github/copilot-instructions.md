@@ -42,6 +42,7 @@ When generating code:
 - Prefer native PowerShell features and standard language capabilities over additional abstractions, wrappers, frameworks, or dependencies.
 - Do not introduce helper functions, classes, configuration layers, design patterns, or reusable abstractions unless they provide clear value for the stated requirement.
 - Optimize for readability and maintainability over cleverness or theoretical extensibility.
+- Prefer code that is clear enough not to need explanatory inline comments. If a section needs heavy explanation, simplify the code first.
 - Keep the happy path easy to follow.
 - Apply error handling and validation where risk exists, but avoid unnecessary defensive code that obscures intent.
 - When modifying existing code, solve the requested problem with the smallest reasonable change and avoid unrelated refactoring.
@@ -56,7 +57,8 @@ For new or changed PowerShell code, prefer this checklist over adding one-off pa
 - Function shape: use production-quality advanced functions with `CmdletBinding()`, a `param()` block, approved verbs, PascalCase parameters, clear names, and small composable public functions.
 - State and output: add `SupportsShouldProcess` for mutations, wrap only the mutation, and return structured objects rather than display-formatted text.
 - Errors and security: use terminating errors with useful context, avoid undocumented `Write-Host`, validate external input, and never hardcode or log secrets, credentials, tenant IDs, or tokens.
-- Tests and help: include comment-based help for public functions and focused Pester tests that mock file I/O, network calls, service calls, time, and environment access.
+- Tests and help: include comment-based help for public functions and scripts, and focused Pester tests that mock file I/O, network calls, service calls, time, and environment access.
+- Comments: do not add comments that merely restate obvious code behavior. Add targeted comments only when they preserve context the code cannot express directly, such as rationale, compatibility constraints, environmental quirks, safety assumptions, or other non-obvious behavior.
 - Verifiable output: prefer behavior and output contracts that can be tested, reviewed, or validated.
 
 ## Repository Structure And Templates
@@ -78,16 +80,21 @@ If multiple templates apply or conflict, choose in this order: state-changing fu
 
 ## Repo-Local Skills
 
-Repo-local Codex skills are stored under `.codex/skills/`. When asked to synchronize downstream AI guidance, use `.codex/skills/downstream-guidance-sync/SKILL.md` and operate `scripts/Invoke-TemplateGuidanceSync.ps1` through the documented audit, branch, validation, commit, and pull request workflow. Do not manually edit downstream guidance files outside the sync script allowlist unless the user explicitly asks for manual repair after a script failure.
+Repo-local Codex skills are stored under `.codex/skills/`. When asked to perform ordinary repository changes that do not belong to a more specialized workflow, use `.codex/skills/change-delivery-workflow/SKILL.md` to coordinate sandbox escalation, non-`main` branches, changelog updates, release decisions, conventional commits, ready pull requests, and post-merge cleanup.
+
+Repo-local Codex skills are stored under `.codex/skills/`. When asked to normalize a newly created downstream repository from `pwsh-dev-template`, use `.codex/skills/downstream-repo-cleanup/SKILL.md` and operate `scripts/Initialize-DownstreamRepo.ps1` through the documented audit, apply, validation, and diff-review workflow. Use this only as an immediate post-create cleanup step before project-specific work begins.
+
+When asked to synchronize downstream AI guidance or deliver newly added cleanup workflow assets into an existing downstream repository, use `.codex/skills/downstream-guidance-sync/SKILL.md` and operate `scripts/Invoke-TemplateGuidanceSync.ps1` through the documented audit, branch, validation, commit, and pull request workflow. Treat cleanup itself as a downstream-repository action performed through `scripts/Initialize-DownstreamRepo.ps1`, and do not manually edit downstream guidance files outside the sync script allowlist unless the user explicitly asks for manual repair after a script failure.
+
+When asked to audit or align a downstream README against the shared portfolio skeleton, use `.codex/skills/readme-alignment/SKILL.md` and operate `scripts/Invoke-ReadmeAlignment.ps1` through the documented audit, apply, validation, and diff-review workflow.
 
 When asked to update the template runtime, Ubuntu image, GitHub Actions runner, or pinned PowerShell tooling, use `.codex/skills/runtime-policy-update/SKILL.md`. Treat `eng/runtime-policy.json` as the source of truth, use `scripts/Update-GeneratedMarkdown.ps1` for generated Markdown blocks, and validate with `scripts/Test-VersionPolicy.ps1`.
 
-When asked to prepare, validate, tag, publish, or clean up a template release version, use `.codex/skills/template-version-release/SKILL.md`. Keep `VERSION`, the README template-version badge, and `CHANGELOG.md` aligned, validate with `scripts/Test-TemplateVersion.ps1`, and create annotated `vX.Y.Z` tags plus GitHub Releases only after the release PR is merged to `main`.
+When asked to prepare, validate, tag, publish, or clean up a template release version, use `.codex/skills/template-version-release/SKILL.md`. Keep `VERSION`, the README template-version badge, and `CHANGELOG.md` aligned, validate with `scripts/Test-TemplateVersion.ps1`, and create lightweight `vX.Y.Z` tags plus GitHub Releases only after the release PR is merged to `main`.
 
 When adding or updating repo-local skills, add or update Pester coverage in `tests/unit/SkillScaffold.Tests.ps1` for the skill file, metadata, required references, and agent discoverability. The Codex `quick_validate.py` helper may be used as an optional authoring check, but Pester is the repository validation standard.
 
 ## PowerShell Compatibility
-
 Target PowerShell 7.4.x unless `README.md`, `/docs`, or the task-specific template declares another version under `PowerShell Version`, `Requirements`, or `Compatibility`. For version conflicts, use this precedence: `README.md`, then `/docs`, then task-specific template. If version requirements are missing, invalid, outdated, or unsupported, provide a PowerShell 7.4.x-compatible fallback and document the assumption.
 
 Avoid syntax, APIs, cmdlets, or modules that conflict with the supported PowerShell version or platform support. Prefer cross-platform approaches; when platform-specific behavior is required, isolate it with `$IsWindows`, `$IsLinux`, or `$IsMacOS`, and test or explicitly mock/skip each supported path.
@@ -108,7 +115,11 @@ Apply the deprecation guidance in `PowerShell Compatibility` to external service
 
 Use 4 spaces for PowerShell indentation, same-line opening braces, single quotes unless interpolation is required, comments above the code they describe, no trailing whitespace, and LF line endings.
 
-When editing text files, preserve the file's existing line-ending behavior and avoid CRLF/LF-sensitive string replacements, especially in Markdown and documentation files. Prefer line-based or parser-aware edits when practical. Before committing text-file changes, run `git diff --check` and fix extra blank lines at EOF, missing expected blank lines, and trailing whitespace.
+When editing Markdown files, run `scripts/Invoke-MarkdownValidation.ps1 -Path <markdown-path>` before committing and resolve all reported violations. Do not rely on visual review or `git diff --check` as a substitute for Markdown validation.
+
+When editing other text files, preserve the file's existing line-ending behavior and avoid CRLF/LF-sensitive string replacements. Prefer line-based or parser-aware edits when practical.
+
+Before committing text-file changes, run `git diff --check` and fix trailing whitespace, whitespace errors, and unintended blank lines at end of file.
 
 In review, flag missing tests, missing comment-based help, analyzer violations, weak validation, missing `ShouldProcess`, unsafe secret handling, unmockable external calls, unstable output contracts, unverified claims, and speculative refactors outside the requested scope.
 

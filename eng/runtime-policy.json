@@ -1,0 +1,16 @@
+{
+  "runtime": {
+    "powershellVersion": "7.4",
+    "powershellVersionLabel": "7.4.x",
+    "ubuntuVersion": "22.04",
+    "dockerImage": "mcr.microsoft.com/powershell:lts-7.4-ubuntu-22.04"
+  },
+  "githubActions": {
+    "runnerImage": "ubuntu-22.04"
+  },
+  "tooling": {
+    "pesterVersion": "6.0.0",
+    "psScriptAnalyzerVersion": "1.25.0",
+    "psReadLineVersion": "2.4.5"
+  }
+}

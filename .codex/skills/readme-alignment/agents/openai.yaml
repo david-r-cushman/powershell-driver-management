@@ -1,0 +1,3 @@
+display_name: "README Alignment"
+short_description: "Align a downstream README to the shared portfolio skeleton"
+default_prompt: "Use $readme-alignment to audit or align this downstream repository README to the shared pwsh-dev-template skeleton while preserving repo-specific content."
