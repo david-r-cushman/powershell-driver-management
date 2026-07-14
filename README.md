@@ -1,11 +1,11 @@
 # Uninstall-DisplayDrivers
 
+[![CI](https://github.com/david-r-cushman/powershell-driver-management/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/david-r-cushman/powershell-driver-management/actions/workflows/ci.yml)
+
 <!-- BEGIN generated:readme-powershell-badge -->
 ![PowerShell 7.4](https://img.shields.io/badge/PowerShell-7.4-blue)
 <!-- END generated:readme-powershell-badge -->
 ![Template Version](https://img.shields.io/badge/template-0.15.0-blue)
-
-[![CI](https://github.com/david-r-cushman/powershell-driver-management/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/david-r-cushman/powershell-driver-management/actions/workflows/ci.yml)
 
 This repository contains a PowerShell script for removing display driver packages by using `devcon.exe`.
 
